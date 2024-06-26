@@ -6,9 +6,14 @@ from sklearn.svm import SVC
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score
 from sklearn.inspection import DecisionBoundaryDisplay
- 
+from sklearn.preprocessing import StandardScaler
+
 df = pd.read_csv('updated_dating.csv')
+
 df = df.dropna(subset=['career'])
+
+scaler = StandardScaler()
+df[['income']] = scaler.fit_transform(df[['income']])
 
 imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
 df[['age', 'like', 'income']] = imputer.fit_transform(df[['age', 'like', 'income']])
