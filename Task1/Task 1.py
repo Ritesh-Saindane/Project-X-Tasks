@@ -6,9 +6,8 @@ from sklearn.svm import SVC
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score
 from sklearn.inspection import DecisionBoundaryDisplay
-
+ 
 df = pd.read_csv('updated_dating.csv')
-
 df = df.dropna(subset=['career'])
 
 imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
