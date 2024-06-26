@@ -1,44 +1,55 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score
 from sklearn.inspection import DecisionBoundaryDisplay
 
-df = pd.read_csv("updated_dating.csv")
+df = pd.read_csv('updated_dating.csv')
+
+df = df.dropna(subset=['career'])
+
+imputer = SimpleImputer(missing_values=np.nan, strategy='mean')
+df[['age', 'like', 'income']] = imputer.fit_transform(df[['age', 'like', 'income']])
+
+X = df[['attr', 'fun', 'age', 'like', 'intel', 'amb', 'gender', 'sinc', 'income']]
+y = df['dec']
+
+x_train_1, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# SVM model 1
+svm_1 = SVC(kernel='rbf')
+svm_1.fit(x_train_1, y_train)
 
 
-columns_with_nan = ['age', 'like', 'fun', 'attr', 'intel', 'sinc', 'amb', 'income']
-df[columns_with_nan] = df[columns_with_nan].apply(lambda col: col.fillna(col.mean()))
-
-# 1st Model (all features except Career) :
-X_1 = df.drop(columns=['career', 'dec']).values
-y = df['dec'].values
-X_train_1, X_test_1, y_train, y_test = train_test_split(X_1, y, test_size=0.2, random_state=42)
-model_1 = SVC(kernel='rbf')
-model_1.fit(X_train_1, y_train)
-accuracy_1 = model_1.score(X_test_1, y_test)
-print(f"Model Accuracy (All Except Career): {accuracy_1}")
+y_pred = svm_1.predict(x_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy for the SVM classifier: {accuracy:.2f}")
 
 
-#2nd Model (only fun and attr in consideration)
-X_2 = df[['fun', 'attr']].values
-X_train_2, X_test_2, y_train, y_test = train_test_split(X_2, y, test_size=0.2, random_state=42)
-model_2 = SVC(kernel='rbf')
-model_2.fit(X_train_2, y_train)
+plt.figure(figsize=(10, 6))
 
 
-plt.figure(figsize=(8, 6))
+scatter = plt.scatter(x_train_1['attr'], x_train_1['fun'], c=y_train, cmap='coolwarm', edgecolors='k', s=100)
+plt.xlabel('Attraction')
+plt.ylabel('Fun')
+plt.title('Decision Boundary and Scatter Plot of attr vs fun for Dating Dataset')
+
+# SVM model 2
+svm_2 = SVC()
+svm_2.fit(x_train_1[['attr', 'fun']], y_train)
+
 DecisionBoundaryDisplay.from_estimator(
-    model_2, X_2, response_method="predict", cmap=plt.cm.coolwarm, alpha=0.8, ax=plt.gca()
+    svm_2,
+    x_train_1[['attr', 'fun']],
+    response_method="predict",
+    cmap=plt.cm.coolwarm,
+    alpha=0.2,
+    ax=plt.gca()
 )
 
-plt.scatter(X_2[y == 0, 0], X_2[y == 0, 1], color='blue', label='Unmatched')
-plt.scatter(X_2[y == 1, 0], X_2[y == 1, 1], color='red', label='Matched')
+plt.legend(handles=scatter.legend_elements()[0], labels=['Negative Decision', 'Positive Decision'])
 
-plt.xlabel('Attractiveness')
-plt.ylabel('Fun')
-plt.title('SVM Decision Boundary with Attractiveness and Fun')
-plt.legend(title='Match')
-plt.tight_layout()
 plt.show()
