@@ -54,6 +54,6 @@ DecisionBoundaryDisplay.from_estimator(
     ax=plt.gca()
 )
 
-plt.legend(handles=scatter.legend_elements()[0], labels=['Negative Decision', 'Positive Decision'])
+plt.legend(handles=scatter.legend_elements()[0], labels=['Not Matched', 'Matched'])
 
 plt.show()
